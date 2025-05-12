@@ -90,7 +90,6 @@ const playlistTracksSlice = createSlice({
       })
       .addCase(removeTrackFromPlaylistSuccess, (state, action) => {
         state.removingStatus = RequestStatus.SUCCESS;
-        console.log(action.payload);
         state.items = state.items.filter((item) => item.track.id !== action.payload.id);
       })
       .addCase(removeTrackFromPlaylistFailed, (state, action) => {

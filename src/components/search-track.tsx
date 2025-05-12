@@ -15,7 +15,6 @@ const SearchTrack: FC<SearchTrackProps> = ({ track }: SearchTrackProps) => {
   const selectedPlaylist = useSelector(selectSelectedPlaylist);
   const onAddToPlaylist = () => {
     if (!selectedPlaylist) return;
-    console.log({ track });
     dispatch(addTracksToPlaylist({ playlistId: selectedPlaylist.id, track }));
   };
   return (
