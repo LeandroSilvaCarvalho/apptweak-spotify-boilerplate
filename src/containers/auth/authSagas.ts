@@ -60,7 +60,6 @@ function* getUserIdSaga() {
         headers: { Authorization: `Bearer ${accessToken}` }
       });
     const { data } = yield call(request);
-    console.log({ userGet: data });
 
     yield put(getUserSuccess({ ...data, userId: data.id, userName: data.display_name }));
   } catch (error: any) {
