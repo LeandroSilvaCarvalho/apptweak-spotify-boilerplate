@@ -1,10 +1,10 @@
 import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import { Box, Flex, Popover, TextField } from "@radix-ui/themes";
 import { FC, useState } from "react";
-import SearchTrack from "./search-track";
 import { selectSearchTracks } from "../containers/search/selectors";
 import { useDispatch, useSelector } from "react-redux";
 import { searchTracks } from "../containers/search/slice";
+import SearchTrackList from "./search-track-list";
 
 const Search: FC = () => {
   const [searchValue, setSearchValue] = useState("");
@@ -47,9 +47,7 @@ const Search: FC = () => {
 
       <Popover.Content sideOffset={8} onOpenAutoFocus={(e) => e.preventDefault()}>
         <Flex direction="column" gap="5">
-          {searchItems.items.map((item) => (
-            <SearchTrack key={item.id} track={item} />
-          ))}
+          <SearchTrackList tracks={searchItems.items} />
         </Flex>
       </Popover.Content>
     </Popover.Root>
