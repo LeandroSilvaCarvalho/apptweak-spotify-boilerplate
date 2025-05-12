@@ -21,6 +21,7 @@ export interface PlaylistTracksState {
   status: RequestStatus;
   addingStatus?: RequestStatus;
   removingStatus?: RequestStatus;
+  reorderingStatus?: RequestStatus;
   error?: string;
 }
 
@@ -56,6 +57,14 @@ export const removeTrackFromPlaylistSuccess = createAction<Track>(
 export const removeTrackFromPlaylistFailed = createAction<ErrorPayload>(
   "playlistTracks/removeTrackFromPlaylistFailed"
 );
+export const reorderTracks = createAction<{
+  playlistId: string;
+  rangeStart: number;
+  insertBefore: number;
+}>("playlistTracks/reorderTrack");
+
+export const reorderTracksSuccess = createAction("playlistTracks/reoorderTracksSuccess");
+export const reorderTracksFailed = createAction<ErrorPayload>("playlistTracks/reorderTracksFailed");
 
 const playlistTracksSlice = createSlice({
   name: "playlistTracks",
@@ -94,6 +103,16 @@ const playlistTracksSlice = createSlice({
       })
       .addCase(removeTrackFromPlaylistFailed, (state, action) => {
         state.removingStatus = RequestStatus.ERROR;
+        state.error = action.payload.message;
+      })
+      .addCase(reorderTracks, (state) => {
+        state.reorderingStatus = RequestStatus.PENDING;
+      })
+      .addCase(reorderTracksSuccess, (state) => {
+        state.reorderingStatus = RequestStatus.SUCCESS;
+      })
+      .addCase(reorderTracksFailed, (state, action) => {
+        state.reorderingStatus = RequestStatus.ERROR;
         state.error = action.payload.message;
       });
   }
