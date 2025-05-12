@@ -1,15 +1,17 @@
-import { Avatar, Card, Flex, IconButton, Text } from "@radix-ui/themes";
+import { Avatar, Box, Card, Flex, IconButton, Text } from "@radix-ui/themes";
 import { PlaylistTrack, removeTrackFromPlaylist } from "../containers/playlistTracks/slice";
 import { FC } from "react";
-import { TrashIcon } from "@radix-ui/react-icons";
+import { DragHandleHorizontalIcon, TrashIcon } from "@radix-ui/react-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { selectSelectedPlaylist } from "../containers/playlists/selectors";
+import { DraggableAttributes } from "@dnd-kit/core";
 
 interface TrackProps {
   track: PlaylistTrack["track"];
+  dragHandleProps?: DraggableAttributes;
 }
 
-const Track: FC<TrackProps> = ({ track }: TrackProps) => {
+const Track: FC<TrackProps> = ({ track, dragHandleProps }: TrackProps) => {
   const dispatch = useDispatch();
   const selectedPlaylist = useSelector(selectSelectedPlaylist);
   const onRemoveFromPlaylist = () => {
@@ -44,7 +46,11 @@ const Track: FC<TrackProps> = ({ track }: TrackProps) => {
         <Flex align="center" justify="start" style={{ flex: 3, whiteSpace: "nowrap" }}>
           <Text size="2">{track.album.release_date}</Text>
         </Flex>
-        <Flex align="center" justify="center" style={{ flex: 1, whiteSpace: "nowrap" }}>
+        <Flex
+          align="center"
+          justify={dragHandleProps ? "between" : "center"}
+          style={{ flex: 1, whiteSpace: "nowrap" }}
+        >
           <IconButton
             radius="large"
             style={{ cursor: "pointer" }}
@@ -54,6 +60,17 @@ const Track: FC<TrackProps> = ({ track }: TrackProps) => {
           >
             <TrashIcon color="red" height="24" width="24" />
           </IconButton>
+
+          {dragHandleProps && (
+            <Box {...dragHandleProps}>
+              <DragHandleHorizontalIcon
+                color="gray"
+                height="34"
+                width="34"
+                style={{ cursor: "grab" }}
+              />
+            </Box>
+          )}
         </Flex>
       </Flex>
     </Card>
