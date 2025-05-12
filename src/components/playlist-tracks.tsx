@@ -13,7 +13,6 @@ const PlaylistTracks: FC = () => {
   const playlistTracks = useSelector(selectPlaylistTracks);
   const playlistTracksStatus = useSelector(selectPlaylistTracksStatus);
 
-  console.log({ playlistTracks });
   if (playlistTracksStatus === RequestStatus.PENDING) {
     return <PlaylistTracksSkeleton />;
   }

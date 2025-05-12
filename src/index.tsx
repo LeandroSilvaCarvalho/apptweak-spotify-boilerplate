@@ -9,7 +9,7 @@ import App from "./App";
 import AuthProvider from "./containers/auth";
 import reportWebVitals from "./reportWebVitals";
 import { store } from "./store/store";
-import { Theme } from "@radix-ui/themes";
+import ThemeProvider from "./containers/theme/theme-provider";
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 
@@ -17,9 +17,9 @@ root.render(
   <React.StrictMode>
     <Provider store={store}>
       <AuthProvider>
-        <Theme radius="large" accentColor="red">
+        <ThemeProvider>
           <App />
-        </Theme>
+        </ThemeProvider>
       </AuthProvider>
     </Provider>
   </React.StrictMode>
