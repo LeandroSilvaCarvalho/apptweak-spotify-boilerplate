@@ -1,16 +1,6 @@
 import { createAction, createSlice } from "@reduxjs/toolkit";
 import { ErrorPayload, RequestStatus } from "../../types/requests";
-
-export interface Playlist {
-  id: string;
-  name: string;
-  description: string;
-  images: { url: string }[];
-  tracks: {
-    href: string;
-    total: number;
-  };
-}
+import { Playlist } from "@spotify/web-api-ts-sdk";
 
 export interface PlaylistsState {
   items: Playlist[];
