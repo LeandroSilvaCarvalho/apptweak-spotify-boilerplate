@@ -20,14 +20,15 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { selectUser } from "../containers/auth/selectors";
 import { reorderTracks } from "../containers/playlistTracks/slice";
+import PlaylistTracksFilter, { SortKey, SortOrder } from "./playlist-tracks-filter";
 
 interface SortableTrackProps {
   id: string;
   track: any;
-  isSortable: boolean;
+  isEditable: boolean;
 }
 
-const SortableTrack: FC<SortableTrackProps> = ({ id, track, isSortable }) => {
+const SortableTrack: FC<SortableTrackProps> = ({ id, track, isEditable }) => {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
 
   const style = {
@@ -39,7 +40,8 @@ const SortableTrack: FC<SortableTrackProps> = ({ id, track, isSortable }) => {
     <div ref={setNodeRef} style={style}>
       <Track
         track={track}
-        dragHandleProps={isSortable ? { ...listeners, ...attributes } : undefined}
+        isEditable={isEditable}
+        dragHandleProps={isEditable ? { ...listeners, ...attributes } : undefined}
       />
     </div>
   );
@@ -53,11 +55,63 @@ const PlaylistTracks: FC = () => {
   const user = useSelector(selectUser);
 
   const [sortedTracks, setSortedTracks] = useState(playlistTracks);
+  const [sortKey, setSortKey] = useState<SortKey>(undefined);
+  const [sortOrder, setSortOrder] = useState<SortOrder>(undefined);
   const sensors = useSensors(useSensor(PointerSensor));
 
   useEffect(() => {
-    setSortedTracks(playlistTracks);
-  }, [playlistTracks]);
+    if (!sortKey || !sortOrder) {
+      setSortedTracks(playlistTracks);
+      return;
+    }
+
+    const sorted = [...playlistTracks].sort((a, b) => {
+      let aVal: any, bVal: any;
+
+      switch (sortKey) {
+        case "title":
+          aVal = a.track.name.toLowerCase();
+          bVal = b.track.name.toLowerCase();
+          break;
+        case "album":
+          aVal = a.track.album.name.toLowerCase();
+          bVal = b.track.album.name.toLowerCase();
+          break;
+        case "releaseDate":
+          aVal = new Date(a.track.album.release_date).getTime();
+          bVal = new Date(b.track.album.release_date).getTime();
+          break;
+        case "duration":
+          aVal = a.track.duration_ms;
+          bVal = b.track.duration_ms;
+          break;
+        default:
+          return 0;
+      }
+
+      if (aVal < bVal) return sortOrder === "asc" ? -1 : 1;
+      if (aVal > bVal) return sortOrder === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    setSortedTracks(sorted);
+  }, [sortKey, sortOrder, playlistTracks]);
+
+  const handleSortChange = (key: SortKey) => {
+    if (sortKey !== key) {
+      setSortKey(key);
+      setSortOrder("asc");
+    } else {
+      setSortOrder((prev) => {
+        if (prev === "asc") return "desc";
+        if (prev === "desc") {
+          setSortKey(undefined);
+          return undefined;
+        }
+        return "asc";
+      });
+    }
+  };
 
   const handleDragEnd = (event: any) => {
     if (!selectedPlaylist) return;
@@ -110,32 +164,52 @@ const PlaylistTracks: FC = () => {
     );
   }
 
-  const isSortable = selectedPlaylist.collaborative || selectedPlaylist.owner.id === user?.userId;
+  const isEditable = selectedPlaylist.collaborative || selectedPlaylist.owner.id === user?.userId;
+
+  const columns = [
+    { key: "title", label: "Title", flex: 3 },
+    { key: "album", label: "Album", flex: 3 },
+    { key: "releaseDate", label: "Release date", flex: 3 },
+    { key: "duration", label: "Duration", flex: 1 }
+  ];
+
+  if (isEditable) {
+    columns.push({ key: "", label: "", flex: 1 });
+  }
 
   return (
-    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-      <SortableContext
-        items={sortedTracks.map((item, index) => `${index}_${item.track?.id}`)}
-        strategy={verticalListSortingStrategy}
-      >
-        <Flex direction="column" gap="5">
-          {sortedTracks.map((playlistTrack, index) => {
-            if (playlistTrack.track) {
-              const uniqueId = `${index}_${playlistTrack.track.id}`;
-              return (
-                <SortableTrack
-                  key={uniqueId}
-                  id={uniqueId}
-                  track={playlistTrack.track}
-                  isSortable={isSortable}
-                />
-              );
-            }
-            return null;
-          })}
-        </Flex>
-      </SortableContext>
-    </DndContext>
+    <>
+      <PlaylistTracksFilter
+        columns={columns}
+        sortKey={sortKey}
+        sortOrder={sortOrder}
+        onSortChange={handleSortChange}
+      />
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext
+          disabled={!!sortKey}
+          items={sortedTracks.map((item, index) => `${index}_${item.track?.id}`)}
+          strategy={verticalListSortingStrategy}
+        >
+          <Flex direction="column" gap="5">
+            {sortedTracks.map((playlistTrack, index) => {
+              if (playlistTrack.track) {
+                const uniqueId = `${index}_${playlistTrack.track.id}`;
+                return (
+                  <SortableTrack
+                    key={uniqueId}
+                    id={uniqueId}
+                    track={playlistTrack.track}
+                    isEditable={isEditable}
+                  />
+                );
+              }
+              return null;
+            })}
+          </Flex>
+        </SortableContext>
+      </DndContext>
+    </>
   );
 };
 

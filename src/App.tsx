@@ -16,7 +16,6 @@ const App: FC = (): ReactElement => {
 
   // TODO: You can access user data and now fetch user's playlists
 
-  console.log({ user });
   return (
     <Box pb="5">
       <Box maxWidth="1300px" mx="auto">
