@@ -11,9 +11,14 @@ import {
   getPlaylistTracksSuccess,
   removeTrackFromPlaylist,
   removeTrackFromPlaylistFailed,
-  removeTrackFromPlaylistSuccess
+  removeTrackFromPlaylistSuccess,
+  reorderTracksFailed,
+  reorderTracksSuccess,
+  reorderTrack,
+  reorderTracks
 } from "./slice";
 import { User } from "../auth/slice";
+import { randomInt } from "crypto";
 
 function* getPlaylistTracksSaga(action: ReturnType<typeof getPlaylistTracks>) {
   const accessToken: string = yield select(selectAccessToken);
@@ -103,8 +108,41 @@ function* remoreTrackFromPlaylistSaga(action: ReturnType<typeof addTracksToPlayl
   }
 }
 
+function* reorderTracksSaga(action: ReturnType<typeof reorderTracks>) {
+  const accessToken: string = yield select(selectAccessToken);
+  if (!accessToken) {
+    yield put(reorderTracksFailed({ message: "No access token" }));
+    return;
+  }
+
+  let rangeStart = action.payload.rangeStart;
+  let insertBefore = action.payload.insertBefore;
+
+  try {
+    const request = () =>
+      axios.put(
+        `https://api.spotify.com/v1/playlists/${action.payload.playlistId}/tracks`,
+        {
+          range_start: rangeStart,
+          insert_before: insertBefore,
+          range_length: 1
+        },
+        {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        }
+      );
+
+    const { data } = yield call(request);
+
+    yield put(reorderTracksSuccess());
+  } catch (error: any) {
+    yield put(reorderTracksFailed({ message: error.message }));
+  }
+}
+
 export default function* playlistTracksSaga() {
   yield takeEvery(getPlaylistTracks.type, getPlaylistTracksSaga);
   yield takeEvery(addTracksToPlaylist.type, addTracksToPlaylistSaga);
   yield takeEvery(removeTrackFromPlaylist.type, remoreTrackFromPlaylistSaga);
+  yield takeEvery(reorderTracks.type, reorderTracksSaga);
 }
