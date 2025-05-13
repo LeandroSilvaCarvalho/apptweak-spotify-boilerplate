@@ -1,17 +1,20 @@
 import { Avatar, Box, Card, Flex, IconButton, Text } from "@radix-ui/themes";
-import { PlaylistTrack, removeTrackFromPlaylist } from "../containers/playlistTracks/slice";
+import { removeTrackFromPlaylist } from "../containers/playlistTracks/slice";
 import { FC } from "react";
 import { DragHandleHorizontalIcon, TrashIcon } from "@radix-ui/react-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { selectSelectedPlaylist } from "../containers/playlists/selectors";
 import { DraggableAttributes } from "@dnd-kit/core";
+import { Track as SpotifyTrack } from "@spotify/web-api-ts-sdk";
+import { formatDuration } from "../utils/time.utils";
 
 interface TrackProps {
-  track: PlaylistTrack["track"];
+  track: SpotifyTrack;
+  isEditable?: boolean;
   dragHandleProps?: DraggableAttributes;
 }
 
-const Track: FC<TrackProps> = ({ track, dragHandleProps }: TrackProps) => {
+const Track: FC<TrackProps> = ({ track, isEditable = false, dragHandleProps }: TrackProps) => {
   const dispatch = useDispatch();
   const selectedPlaylist = useSelector(selectSelectedPlaylist);
   const onRemoveFromPlaylist = () => {
@@ -43,35 +46,40 @@ const Track: FC<TrackProps> = ({ track, dragHandleProps }: TrackProps) => {
           <Text truncate>{track.album.name}</Text>
         </Flex>
 
-        <Flex align="center" justify="start" style={{ flex: 3, whiteSpace: "nowrap" }}>
+        <Flex align="center" justify="start" style={{ flex: 3 }}>
           <Text size="2">{track.album.release_date}</Text>
         </Flex>
-        <Flex
-          align="center"
-          justify={dragHandleProps ? "between" : "center"}
-          style={{ flex: 1, whiteSpace: "nowrap" }}
-        >
-          <IconButton
-            radius="large"
-            style={{ cursor: "pointer" }}
-            variant="ghost"
-            color="gray"
-            onClick={onRemoveFromPlaylist}
-          >
-            <TrashIcon color="red" height="24" width="24" />
-          </IconButton>
-
-          {dragHandleProps && (
-            <Box {...dragHandleProps}>
-              <DragHandleHorizontalIcon
-                color="gray"
-                height="34"
-                width="34"
-                style={{ cursor: "grab" }}
-              />
-            </Box>
-          )}
+        <Flex align="center" justify="start" style={{ flex: 1 }}>
+          <Text size="2">{formatDuration(track.duration_ms)}</Text>
         </Flex>
+        {isEditable && (
+          <Flex
+            align="center"
+            justify={dragHandleProps ? "between" : "center"}
+            style={{ flex: 1, whiteSpace: "nowrap" }}
+          >
+            <IconButton
+              radius="large"
+              style={{ cursor: "pointer" }}
+              variant="ghost"
+              color="gray"
+              onClick={onRemoveFromPlaylist}
+            >
+              <TrashIcon color="red" height="24" width="24" />
+            </IconButton>
+
+            {dragHandleProps && (
+              <Box {...dragHandleProps}>
+                <DragHandleHorizontalIcon
+                  color="gray"
+                  height="34"
+                  width="34"
+                  style={{ cursor: "grab" }}
+                />
+              </Box>
+            )}
+          </Flex>
+        )}
       </Flex>
     </Card>
   );
