@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { selectSelectedPlaylist } from "../containers/playlists/selectors";
 import { DraggableAttributes } from "@dnd-kit/core";
 import { Track as SpotifyTrack } from "@spotify/web-api-ts-sdk";
+import { formatDuration } from "../utils/time.utils";
 
 interface TrackProps {
   track: SpotifyTrack;
@@ -49,7 +50,7 @@ const Track: FC<TrackProps> = ({ track, isEditable = false, dragHandleProps }: T
           <Text size="2">{track.album.release_date}</Text>
         </Flex>
         <Flex align="center" justify="start" style={{ flex: 1 }}>
-          <Text size="2">{track.duration_ms}</Text>
+          <Text size="2">{formatDuration(track.duration_ms)}</Text>
         </Flex>
         {isEditable && (
           <Flex
