@@ -1,6 +1,6 @@
 import { createAction, createSlice } from "@reduxjs/toolkit";
 import { ErrorPayload, RequestStatus } from "../../types/requests";
-import { Track } from "@spotify/web-api-ts-sdk";
+import { Track } from "../../types/track";
 
 export interface SearchTrack {
   items: Track[];

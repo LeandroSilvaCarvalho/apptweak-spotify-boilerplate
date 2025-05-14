@@ -1,6 +1,6 @@
 import { createAction, createSlice } from "@reduxjs/toolkit";
 import { ErrorPayload, RequestStatus } from "../../types/requests";
-import { Playlist } from "@spotify/web-api-ts-sdk";
+import { Playlist } from "../../types/playlist";
 
 export interface PlaylistsState {
   items: Playlist[];
@@ -27,6 +27,18 @@ export const createPlaylist = createAction<{ name: string; description?: string 
 export const createPlaylistSuccess = createAction<Playlist>("playlists/createPlaylistSuccess");
 export const createPlaylistFailed = createAction<ErrorPayload>("playlists/createPlaylistFailed");
 
+export const updatePlaylist = createAction<{
+  playlistId: string;
+  name: string;
+  description: string;
+}>("playlists/updatePlaylist");
+export const updatePlaylistSuccess = createAction<{
+  playlistId: string;
+  name: string;
+  description: string;
+}>("playlists/updatePlaylistSuccess");
+export const updatePlaylistFailed = createAction<ErrorPayload>("playlists/updatePlaylistFailed");
+
 const playlistsSlice = createSlice({
   name: "playlists",
   initialState,
@@ -44,7 +56,6 @@ const playlistsSlice = createSlice({
         state.status = RequestStatus.ERROR;
         state.error = action.payload.message;
       })
-
       .addCase(setSelectedPlaylist, (state, action) => {
         state.selectedPlaylist = action.payload;
       })
@@ -56,6 +67,19 @@ const playlistsSlice = createSlice({
         state.items.push(action.payload);
       })
       .addCase(createPlaylistFailed, (state, action) => {
+        state.status = RequestStatus.ERROR;
+        state.error = action.payload.message;
+      })
+      .addCase(updatePlaylist, (state) => {
+        state.status = RequestStatus.PENDING;
+      })
+      .addCase(updatePlaylistSuccess, (state, action) => {
+        state.status = RequestStatus.SUCCESS;
+        const index = state.items.findIndex((item) => item.id === action.payload.playlistId);
+        state.items[index].name = action.payload.name;
+        state.items[index].description = action.payload.description;
+      })
+      .addCase(updatePlaylistFailed, (state, action) => {
         state.status = RequestStatus.ERROR;
         state.error = action.payload.message;
       });

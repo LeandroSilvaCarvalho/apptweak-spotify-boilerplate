@@ -1,19 +1,37 @@
 import { Button, Dialog, Flex, Text, TextArea, TextField } from "@radix-ui/themes";
-import { FC } from "react";
+import { FC, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { selectSelectedPlaylist } from "../containers/playlists/selectors";
+import { updatePlaylist } from "../containers/playlists/slice";
 
 const EditPlaylist: FC = () => {
   const dispatch = useDispatch();
   const playlist = useSelector(selectSelectedPlaylist);
+  const [newPlaylist, setNewPlaylist] = useState(playlist);
 
   if (!playlist) return null;
 
-  const onCreatePlaylist = () => {};
+  const onCreatePlaylist = () => {
+    dispatch(
+      updatePlaylist({
+        playlistId: playlist.id,
+        name: newPlaylist?.name ?? "",
+        description: newPlaylist?.description ?? ""
+      })
+    );
+  };
 
-  const onNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {};
+  const onNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (newPlaylist) {
+      setNewPlaylist({ ...newPlaylist, name: e.target.value });
+    }
+  };
 
-  const onDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {};
+  const onDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    if (newPlaylist) {
+      setNewPlaylist({ ...newPlaylist, description: e.target.value });
+    }
+  };
 
   return (
     <Dialog.Root>

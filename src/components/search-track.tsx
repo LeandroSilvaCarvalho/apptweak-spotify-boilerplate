@@ -4,7 +4,7 @@ import { Avatar, Card, Flex, IconButton, Text, Tooltip } from "@radix-ui/themes"
 import { PlusIcon } from "@radix-ui/react-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { selectSelectedPlaylist } from "../containers/playlists/selectors";
-import { Track } from "@spotify/web-api-ts-sdk";
+import { Track } from "../types/track";
 
 interface SearchTrackProps {
   track: Track;

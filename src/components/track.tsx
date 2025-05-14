@@ -5,11 +5,11 @@ import { DragHandleHorizontalIcon, TrashIcon } from "@radix-ui/react-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { selectSelectedPlaylist } from "../containers/playlists/selectors";
 import { DraggableAttributes } from "@dnd-kit/core";
-import { Track as SpotifyTrack } from "@spotify/web-api-ts-sdk";
 import { formatDuration } from "../utils/time.utils";
+import { Track as ITrack } from "../types/track";
 
 interface TrackProps {
-  track: SpotifyTrack;
+  track: ITrack;
   isEditable?: boolean;
   dragHandleProps?: DraggableAttributes;
 }
