@@ -1,4 +1,4 @@
-import { call, put, select, takeEvery } from "@redux-saga/core/effects";
+import { call, put, select, takeEvery, takeLatest } from "@redux-saga/core/effects";
 import axios from "axios";
 import { selectAccessToken, selectUser } from "../auth/selectors";
 import {
@@ -14,11 +14,9 @@ import {
   removeTrackFromPlaylistSuccess,
   reorderTracksFailed,
   reorderTracksSuccess,
-  reorderTrack,
   reorderTracks
 } from "./slice";
 import { User } from "../auth/slice";
-import { randomInt } from "crypto";
 
 function* getPlaylistTracksSaga(action: ReturnType<typeof getPlaylistTracks>) {
   const accessToken: string = yield select(selectAccessToken);
@@ -58,7 +56,7 @@ function* addTracksToPlaylistSaga(action: ReturnType<typeof addTracksToPlaylist>
         }
       );
 
-    const { data } = yield call(request);
+    const { status } = yield call(request);
     const user: User = yield select(selectUser);
 
     const playlistTrack: PlaylistTrack = {
@@ -74,7 +72,9 @@ function* addTracksToPlaylistSaga(action: ReturnType<typeof addTracksToPlaylist>
       primary_color: "",
       track: action.payload.track
     };
-    yield put(addTracksToPlaylistSuccess(playlistTrack));
+    if (status === 201) {
+      yield put(addTracksToPlaylistSuccess(playlistTrack));
+    }
   } catch (error: any) {
     yield put(addTracksToPlaylistFailed({ message: error.message }));
   }
@@ -100,9 +100,11 @@ function* remoreTrackFromPlaylistSaga(action: ReturnType<typeof addTracksToPlayl
         headers: { Authorization: `Bearer ${accessToken}` }
       });
 
-    const { data } = yield call(request);
+    const { status } = yield call(request);
 
-    yield put(removeTrackFromPlaylistSuccess(action.payload.track));
+    if (status === 200) {
+      yield put(removeTrackFromPlaylistSuccess(action.payload.track));
+    }
   } catch (error: any) {
     yield put(removeTrackFromPlaylistFailed({ message: error.message }));
   }
@@ -132,16 +134,18 @@ function* reorderTracksSaga(action: ReturnType<typeof reorderTracks>) {
         }
       );
 
-    const { data } = yield call(request);
+    const { status } = yield call(request);
 
-    yield put(reorderTracksSuccess());
+    if (status === 200) {
+      yield put(reorderTracksSuccess());
+    }
   } catch (error: any) {
     yield put(reorderTracksFailed({ message: error.message }));
   }
 }
 
 export default function* playlistTracksSaga() {
-  yield takeEvery(getPlaylistTracks.type, getPlaylistTracksSaga);
+  yield takeLatest(getPlaylistTracks.type, getPlaylistTracksSaga);
   yield takeEvery(addTracksToPlaylist.type, addTracksToPlaylistSaga);
   yield takeEvery(removeTrackFromPlaylist.type, remoreTrackFromPlaylistSaga);
   yield takeEvery(reorderTracks.type, reorderTracksSaga);
