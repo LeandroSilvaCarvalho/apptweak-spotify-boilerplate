@@ -1,10 +1,10 @@
 import { createAction, createSlice } from "@reduxjs/toolkit";
-import { ErrorPayload, RequestStatus } from "../../types/requests";
+import { ErrorPayload, RequestStatus, RequestStatusType } from "../../types/requests";
 import { Playlist } from "../../types/playlist";
 
 export interface PlaylistsState {
   items: Playlist[];
-  status: RequestStatus;
+  status: RequestStatusType;
   error?: string;
   selectedPlaylist?: Playlist;
 }

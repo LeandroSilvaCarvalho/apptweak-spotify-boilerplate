@@ -2,7 +2,6 @@ import { call, put, select, takeEvery } from "@redux-saga/core/effects";
 import axios from "axios";
 import { selectAccessToken, selectUser } from "../auth/selectors";
 import {
-  Playlist,
   createPlaylist,
   createPlaylistFailed,
   createPlaylistSuccess,
@@ -16,6 +15,7 @@ import {
 } from "./slice";
 import { User } from "../auth/slice";
 import { RootState } from "../../store/store";
+import { Playlist } from "../../types/playlist";
 
 function* getPlaylistsSaga() {
   const accessToken: string = yield select(selectAccessToken);

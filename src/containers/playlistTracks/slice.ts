@@ -1,14 +1,14 @@
 import { createAction, createSlice } from "@reduxjs/toolkit";
-import { ErrorPayload, RequestStatus } from "../../types/requests";
+import { ErrorPayload, RequestStatus, RequestStatusType } from "../../types/requests";
 import { Track } from "../../types/track";
 import { PlaylistTrack } from "../../types/playlist";
 
 export interface PlaylistTracksState {
   items: PlaylistTrack[];
-  status: RequestStatus;
-  addingStatus?: RequestStatus;
-  removingStatus?: RequestStatus;
-  reorderingStatus?: RequestStatus;
+  status: RequestStatusType;
+  addingStatus?: RequestStatusType;
+  removingStatus?: RequestStatusType;
+  reorderingStatus?: RequestStatusType;
   error?: string;
 }
 
