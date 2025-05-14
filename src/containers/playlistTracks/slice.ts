@@ -1,20 +1,7 @@
 import { createAction, createSlice } from "@reduxjs/toolkit";
 import { ErrorPayload, RequestStatus } from "../../types/requests";
-import { PlaylistedTrack, Track } from "@spotify/web-api-ts-sdk";
-
-//export interface PlaylistTrack {
-//  track: {
-//    id: string;
-//    name: string;
-//    artists: { name: string }[];
-//    album: { name: string; release_date: string; images: { url: string }[] };
-//    duration_ms: number;
-//  };
-//}
-
-export interface PlaylistTrack extends PlaylistedTrack {
-  track: Track;
-}
+import { Track } from "../../types/track";
+import { PlaylistTrack } from "../../types/playlist";
 
 export interface PlaylistTracksState {
   items: PlaylistTrack[];
