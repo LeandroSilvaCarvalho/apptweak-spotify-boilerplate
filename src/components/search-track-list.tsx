@@ -1,7 +1,7 @@
-import { Track } from "@spotify/web-api-ts-sdk";
 import { FC } from "react";
 import SearchTrack from "./search-track";
 import { Box, Flex, Text } from "@radix-ui/themes";
+import { Track } from "../types/track";
 
 interface SearchTrackListProps {
   tracks: Track[];
