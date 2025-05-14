@@ -1,5 +1,5 @@
 import { createAction, createSlice } from "@reduxjs/toolkit";
-import { ErrorPayload, RequestStatus } from "../../types/requests";
+import { ErrorPayload, RequestStatus, RequestStatusType } from "../../types/requests";
 import { Track } from "../../types/track";
 
 export interface SearchTrack {
@@ -9,7 +9,7 @@ export interface SearchTrack {
 export interface SearchState {
   query: string;
   items: SearchTrack;
-  status: RequestStatus;
+  status: RequestStatusType;
   error: string;
 }
 

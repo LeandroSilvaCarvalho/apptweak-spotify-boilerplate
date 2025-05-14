@@ -19,7 +19,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { selectUser } from "../containers/auth/selectors";
-import { reorderTracks } from "../containers/playlistTracks/slice";
+import { getPlaylistTracks, reorderTracks } from "../containers/playlistTracks/slice";
 import PlaylistTracksFilter, { SortKey, SortOrder } from "./playlist-tracks-filter";
 
 interface SortableTrackProps {
@@ -58,6 +58,11 @@ const PlaylistTracks: FC = () => {
   const [sortKey, setSortKey] = useState<SortKey>(undefined);
   const [sortOrder, setSortOrder] = useState<SortOrder>(undefined);
   const sensors = useSensors(useSensor(PointerSensor));
+
+  useEffect(() => {
+    if (!selectedPlaylist) return;
+    dispatch(getPlaylistTracks(selectedPlaylist.id));
+  }, [selectedPlaylist]);
 
   useEffect(() => {
     if (!sortKey || !sortOrder) {
