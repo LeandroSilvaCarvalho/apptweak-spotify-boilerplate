@@ -17,39 +17,61 @@ import {
 } from "./slice";
 import { User } from "../auth/slice";
 import { PlaylistTrack } from "../../types/playlist";
+import { selectPlaylistTracksLastFetched } from "./selectors";
+
+const STALE_TIME = 1000 * 60 * 1;
+
+function isDataStale(lastFetched: number): boolean {
+  const now = new Date().getTime();
+  return now - lastFetched > STALE_TIME;
+}
 
 function* getPlaylistTracksSaga(action: ReturnType<typeof getPlaylistTracks>) {
+  const playlistId = action.payload;
   const accessToken: string = yield select(selectAccessToken);
   if (!accessToken) {
-    yield put(getPlaylistTracksFailed({ message: "No access token" }));
+    yield put(getPlaylistTracksFailed({ playlistId, message: "No access token" }));
+    return;
+  }
+
+  const lastFetched: number = yield select(selectPlaylistTracksLastFetched(playlistId));
+  if (!isDataStale(lastFetched)) {
     return;
   }
 
   try {
     const request = () =>
-      axios.get(`https://api.spotify.com/v1/playlists/${action.payload}/tracks`, {
+      axios.get(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
         headers: { Authorization: `Bearer ${accessToken}` }
       });
+
     const { data } = yield call(request);
-    yield put(getPlaylistTracksSuccess(data.items));
+    yield put(
+      getPlaylistTracksSuccess({
+        playlistId,
+        tracks: data.items,
+        lastFetched: new Date().getTime()
+      })
+    );
   } catch (error: any) {
-    yield put(getPlaylistTracksFailed({ message: error.message }));
+    yield put(getPlaylistTracksFailed({ playlistId, message: error.message }));
   }
 }
 
 function* addTracksToPlaylistSaga(action: ReturnType<typeof addTracksToPlaylist>) {
+  const { playlistId, track } = action.payload;
   const accessToken: string = yield select(selectAccessToken);
   if (!accessToken) {
-    yield put(addTracksToPlaylistFailed({ message: "No access token" }));
+    yield put(addTracksToPlaylistFailed({ playlistId, message: "No access token" }));
     return;
   }
 
   try {
     const request = () =>
       axios.post(
-        `https://api.spotify.com/v1/playlists/${action.payload.playlistId}/tracks`,
+        `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
         {
-          uris: [action.payload.track.uri]
+          uris: [track.uri]
         },
         {
           headers: { Authorization: `Bearer ${accessToken}` }
@@ -70,32 +92,36 @@ function* addTracksToPlaylistSaga(action: ReturnType<typeof addTracksToPlaylist>
       },
       is_local: false,
       primary_color: "",
-      track: action.payload.track
+      track
     };
+
     if (status === 201) {
-      yield put(addTracksToPlaylistSuccess(playlistTrack));
+      yield put(
+        addTracksToPlaylistSuccess({
+          playlistId,
+          playlistTrack,
+          lastFetched: new Date().getTime()
+        })
+      );
     }
   } catch (error: any) {
-    yield put(addTracksToPlaylistFailed({ message: error.message }));
+    yield put(addTracksToPlaylistFailed({ playlistId, message: error.message }));
   }
 }
 
-function* remoreTrackFromPlaylistSaga(action: ReturnType<typeof addTracksToPlaylist>) {
+function* removeTrackFromPlaylistSaga(action: ReturnType<typeof removeTrackFromPlaylist>) {
+  const { playlistId, track } = action.payload;
   const accessToken: string = yield select(selectAccessToken);
   if (!accessToken) {
-    yield put(removeTrackFromPlaylistFailed({ message: "No access token" }));
+    yield put(removeTrackFromPlaylistFailed({ playlistId, message: "No access token" }));
     return;
   }
 
   try {
     const request = () =>
-      axios.delete(`https://api.spotify.com/v1/playlists/${action.payload.playlistId}/tracks`, {
+      axios.delete(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
         data: {
-          tracks: [
-            {
-              uri: action.payload.track.uri
-            }
-          ]
+          tracks: [{ uri: track.uri }]
         },
         headers: { Authorization: `Bearer ${accessToken}` }
       });
@@ -103,27 +129,25 @@ function* remoreTrackFromPlaylistSaga(action: ReturnType<typeof addTracksToPlayl
     const { status } = yield call(request);
 
     if (status === 200) {
-      yield put(removeTrackFromPlaylistSuccess(action.payload.track));
+      yield put(removeTrackFromPlaylistSuccess({ playlistId, trackId: track.id }));
     }
   } catch (error: any) {
-    yield put(removeTrackFromPlaylistFailed({ message: error.message }));
+    yield put(removeTrackFromPlaylistFailed({ playlistId, message: error.message }));
   }
 }
 
 function* reorderTracksSaga(action: ReturnType<typeof reorderTracks>) {
+  const { playlistId, rangeStart, insertBefore } = action.payload;
   const accessToken: string = yield select(selectAccessToken);
   if (!accessToken) {
-    yield put(reorderTracksFailed({ message: "No access token" }));
+    yield put(reorderTracksFailed({ playlistId, message: "No access token" }));
     return;
   }
-
-  let rangeStart = action.payload.rangeStart;
-  let insertBefore = action.payload.insertBefore;
 
   try {
     const request = () =>
       axios.put(
-        `https://api.spotify.com/v1/playlists/${action.payload.playlistId}/tracks`,
+        `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
         {
           range_start: rangeStart,
           insert_before: insertBefore,
@@ -137,16 +161,16 @@ function* reorderTracksSaga(action: ReturnType<typeof reorderTracks>) {
     const { status } = yield call(request);
 
     if (status === 200) {
-      yield put(reorderTracksSuccess());
+      yield put(reorderTracksSuccess({ playlistId, rangeStart, insertBefore }));
     }
   } catch (error: any) {
-    yield put(reorderTracksFailed({ message: error.message }));
+    yield put(reorderTracksFailed({ playlistId, message: error.message }));
   }
 }
 
 export default function* playlistTracksSaga() {
   yield takeLatest(getPlaylistTracks.type, getPlaylistTracksSaga);
   yield takeEvery(addTracksToPlaylist.type, addTracksToPlaylistSaga);
-  yield takeEvery(removeTrackFromPlaylist.type, remoreTrackFromPlaylistSaga);
+  yield takeEvery(removeTrackFromPlaylist.type, removeTrackFromPlaylistSaga);
   yield takeEvery(reorderTracks.type, reorderTracksSaga);
 }

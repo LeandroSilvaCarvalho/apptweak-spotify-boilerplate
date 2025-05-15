@@ -1,57 +1,94 @@
 import { createAction, createSlice } from "@reduxjs/toolkit";
-import { ErrorPayload, RequestStatus, RequestStatusType } from "../../types/requests";
+import { RequestStatus, RequestStatusType } from "../../types/requests";
 import { Track } from "../../types/track";
 import { PlaylistTrack } from "../../types/playlist";
 
+const reorderTrackList = (list: PlaylistTrack[], rangeStart: number, insertBefore: number) => {
+  if (rangeStart === insertBefore || rangeStart + 1 === insertBefore) {
+    return list;
+  }
+
+  const item = list[rangeStart];
+  const newList = [...list];
+  newList.splice(rangeStart, 1);
+
+  const adjustedIndex = rangeStart < insertBefore ? insertBefore - 1 : insertBefore;
+  newList.splice(adjustedIndex, 0, item);
+
+  return newList;
+};
+
 export interface PlaylistTracksState {
-  items: PlaylistTrack[];
-  status: RequestStatusType;
-  addingStatus?: RequestStatusType;
-  removingStatus?: RequestStatusType;
-  reorderingStatus?: RequestStatusType;
-  error?: string;
+  byPlaylistId: Record<
+    string,
+    {
+      items: PlaylistTrack[];
+      status: RequestStatusType;
+      addingStatus?: RequestStatusType;
+      removingStatus?: RequestStatusType;
+      reorderingStatus?: RequestStatusType;
+      error?: string;
+      lastFetched?: number;
+    }
+  >;
 }
 
 const initialState: PlaylistTracksState = {
-  items: [],
-  status: RequestStatus.IDLE
+  byPlaylistId: {}
 };
 
 export const getPlaylistTracks = createAction<string>("playlistTracks/getPlaylistTracks");
-export const getPlaylistTracksSuccess = createAction<PlaylistTrack[]>(
-  "playlistTracks/getPlaylistTracksSuccess"
-);
-export const getPlaylistTracksFailed = createAction<ErrorPayload>(
-  "playlistTracks/getPlaylistTracksFailed"
-);
+export const getPlaylistTracksSuccess = createAction<{
+  playlistId: string;
+  tracks: PlaylistTrack[];
+  lastFetched: number;
+}>("playlistTracks/getPlaylistTracksSuccess");
+export const getPlaylistTracksFailed = createAction<{
+  playlistId: string;
+  message: string;
+}>("playlistTracks/getPlaylistTracksFailed");
 
-export const addTracksToPlaylist = createAction<{ playlistId: string; track: Track }>(
-  "playlistTracks/addTracksToPlaylist"
-);
-export const addTracksToPlaylistSuccess = createAction<PlaylistTrack>(
-  "playlistTracks/addTracksToPlaylistSuccess"
-);
-export const addTracksToPlaylistFailed = createAction<ErrorPayload>(
-  "playlistTracks/addTracksToPlaylistFailed"
-);
+export const addTracksToPlaylist = createAction<{
+  playlistId: string;
+  track: Track;
+}>("playlistTracks/addTracksToPlaylist");
+export const addTracksToPlaylistSuccess = createAction<{
+  playlistId: string;
+  playlistTrack: PlaylistTrack;
+  lastFetched: number;
+}>("playlistTracks/addTracksToPlaylistSuccess");
+export const addTracksToPlaylistFailed = createAction<{
+  playlistId: string;
+  message: string;
+}>("playlistTracks/addTracksToPlaylistFailed");
 
-export const removeTrackFromPlaylist = createAction<{ playlistId: string; track: Track }>(
-  "playlistTracks/removeTrackFromPlaylist"
-);
-export const removeTrackFromPlaylistSuccess = createAction<Track>(
-  "playlistTracks/removeTrackFromPlaylistSuccess"
-);
-export const removeTrackFromPlaylistFailed = createAction<ErrorPayload>(
-  "playlistTracks/removeTrackFromPlaylistFailed"
-);
+export const removeTrackFromPlaylist = createAction<{
+  playlistId: string;
+  track: Track;
+}>("playlistTracks/removeTrackFromPlaylist");
+export const removeTrackFromPlaylistSuccess = createAction<{
+  playlistId: string;
+  trackId: string;
+}>("playlistTracks/removeTrackFromPlaylistSuccess");
+export const removeTrackFromPlaylistFailed = createAction<{
+  playlistId: string;
+  message: string;
+}>("playlistTracks/removeTrackFromPlaylistFailed");
+
 export const reorderTracks = createAction<{
   playlistId: string;
   rangeStart: number;
   insertBefore: number;
-}>("playlistTracks/reorderTrack");
-
-export const reorderTracksSuccess = createAction("playlistTracks/reoorderTracksSuccess");
-export const reorderTracksFailed = createAction<ErrorPayload>("playlistTracks/reorderTracksFailed");
+}>("playlistTracks/reorderTracks");
+export const reorderTracksSuccess = createAction<{
+  playlistId: string;
+  rangeStart: number;
+  insertBefore: number;
+}>("playlistTracks/reorderTracksSuccess");
+export const reorderTracksFailed = createAction<{
+  playlistId: string;
+  message: string;
+}>("playlistTracks/reorderTracksFailed");
 
 const playlistTracksSlice = createSlice({
   name: "playlistTracks",
@@ -59,48 +96,105 @@ const playlistTracksSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(getPlaylistTracks, (state) => {
-        state.status = RequestStatus.PENDING;
+      .addCase(getPlaylistTracks, (state, action) => {
+        const playlistId = action.payload;
+        state.byPlaylistId[playlistId] = {
+          ...(state.byPlaylistId[playlistId] || {
+            items: []
+          }),
+          status: RequestStatus.PENDING
+        };
       })
       .addCase(getPlaylistTracksSuccess, (state, action) => {
-        state.status = RequestStatus.SUCCESS;
-        state.items = action.payload;
+        const { playlistId, tracks, lastFetched } = action.payload;
+        state.byPlaylistId[playlistId] = {
+          ...(state.byPlaylistId[playlistId] || {}),
+          items: tracks,
+          status: RequestStatus.SUCCESS,
+          lastFetched
+        };
       })
       .addCase(getPlaylistTracksFailed, (state, action) => {
-        state.status = RequestStatus.ERROR;
-        state.error = action.payload.message;
+        const { playlistId, message } = action.payload;
+        state.byPlaylistId[playlistId] = {
+          ...(state.byPlaylistId[playlistId] || { items: [] }),
+          status: RequestStatus.ERROR,
+          error: message
+        };
       })
-      .addCase(addTracksToPlaylist, (state) => {
-        state.addingStatus = RequestStatus.PENDING;
+      .addCase(addTracksToPlaylist, (state, action) => {
+        const { playlistId } = action.payload;
+        state.byPlaylistId[playlistId] = {
+          ...(state.byPlaylistId[playlistId] || { items: [], status: RequestStatus.IDLE }),
+          addingStatus: RequestStatus.PENDING
+        };
       })
       .addCase(addTracksToPlaylistSuccess, (state, action) => {
-        state.addingStatus = RequestStatus.SUCCESS;
-        state.items.push(action.payload);
+        const { playlistId, playlistTrack, lastFetched } = action.payload;
+        const entry = state.byPlaylistId[playlistId];
+        if (entry) {
+          entry.items.push(playlistTrack);
+          entry.addingStatus = RequestStatus.SUCCESS;
+          entry.lastFetched = lastFetched;
+        }
       })
       .addCase(addTracksToPlaylistFailed, (state, action) => {
-        state.addingStatus = RequestStatus.ERROR;
-        state.error = action.payload.message;
+        const { playlistId, message } = action.payload;
+        const entry = state.byPlaylistId[playlistId];
+        if (entry) {
+          entry.addingStatus = RequestStatus.ERROR;
+          entry.error = message;
+        }
       })
-      .addCase(removeTrackFromPlaylist, (state) => {
-        state.removingStatus = RequestStatus.PENDING;
+      .addCase(removeTrackFromPlaylist, (state, action) => {
+        const { playlistId } = action.payload;
+        const entry = state.byPlaylistId[playlistId];
+        if (entry) {
+          entry.removingStatus = RequestStatus.PENDING;
+        }
       })
       .addCase(removeTrackFromPlaylistSuccess, (state, action) => {
-        state.removingStatus = RequestStatus.SUCCESS;
-        state.items = state.items.filter((item) => item.track.id !== action.payload.id);
+        const { playlistId, trackId } = action.payload;
+        const entry = state.byPlaylistId[playlistId];
+        if (entry) {
+          entry.items = entry.items.filter((item) => item.track.id !== trackId);
+          entry.removingStatus = RequestStatus.SUCCESS;
+        }
       })
       .addCase(removeTrackFromPlaylistFailed, (state, action) => {
-        state.removingStatus = RequestStatus.ERROR;
-        state.error = action.payload.message;
+        const { playlistId, message } = action.payload;
+        const entry = state.byPlaylistId[playlistId];
+        if (entry) {
+          entry.removingStatus = RequestStatus.ERROR;
+          entry.error = message;
+        }
       })
-      .addCase(reorderTracks, (state) => {
-        state.reorderingStatus = RequestStatus.PENDING;
+      .addCase(reorderTracks, (state, action) => {
+        const { playlistId } = action.payload;
+        const entry = state.byPlaylistId[playlistId];
+        if (entry) {
+          entry.reorderingStatus = RequestStatus.PENDING;
+        }
       })
-      .addCase(reorderTracksSuccess, (state) => {
-        state.reorderingStatus = RequestStatus.SUCCESS;
+      .addCase(reorderTracksSuccess, (state, action) => {
+        const { playlistId } = action.payload;
+        const entry = state.byPlaylistId[playlistId];
+        if (entry) {
+          entry.items = reorderTrackList(
+            entry.items,
+            action.payload.rangeStart,
+            action.payload.insertBefore
+          );
+          entry.reorderingStatus = RequestStatus.SUCCESS;
+        }
       })
       .addCase(reorderTracksFailed, (state, action) => {
-        state.reorderingStatus = RequestStatus.ERROR;
-        state.error = action.payload.message;
+        const { playlistId, message } = action.payload;
+        const entry = state.byPlaylistId[playlistId];
+        if (entry) {
+          entry.reorderingStatus = RequestStatus.ERROR;
+          entry.error = message;
+        }
       });
   }
 });
