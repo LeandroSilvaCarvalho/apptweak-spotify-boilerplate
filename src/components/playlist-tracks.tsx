@@ -19,7 +19,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { selectUser } from "../containers/auth/selectors";
-import { getPlaylistTracks, reorderTracks } from "../containers/playlistTracks/slice";
+import { reorderTracks } from "../containers/playlistTracks/slice";
 import PlaylistTracksFilter, { SortKey, SortOrder } from "./playlist-tracks-filter";
 
 interface SortableTrackProps {
@@ -50,8 +50,8 @@ const SortableTrack: FC<SortableTrackProps> = ({ id, track, isEditable }) => {
 const PlaylistTracks: FC = () => {
   const dispatch = useDispatch();
   const selectedPlaylist = useSelector(selectSelectedPlaylist);
-  const playlistTracks = useSelector(selectPlaylistTracks);
-  const playlistTracksStatus = useSelector(selectPlaylistTracksStatus);
+  const playlistTracks = useSelector(selectPlaylistTracks(selectedPlaylist?.id));
+  const playlistTracksStatus = useSelector(selectPlaylistTracksStatus(selectedPlaylist?.id));
   const user = useSelector(selectUser);
 
   const [sortedTracks, setSortedTracks] = useState(playlistTracks);
@@ -137,7 +137,7 @@ const PlaylistTracks: FC = () => {
     );
   };
 
-  if (playlistTracksStatus === RequestStatus.PENDING) {
+  if (playlistTracksStatus === RequestStatus.PENDING && sortedTracks.length === 0) {
     return <PlaylistTracksSkeleton />;
   }
 

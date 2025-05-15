@@ -75,6 +75,7 @@ function* createPlaylistsSaga(action: ReturnType<typeof createPlaylist>) {
 }
 
 function* updatePlaylistsSaga(action: ReturnType<typeof updatePlaylist>) {
+  const { playlistId, name, description } = action.payload;
   const accessToken: string = yield select(selectAccessToken);
   if (!accessToken) {
     yield put(updatePlaylistFailed({ message: "No access token" }));
@@ -90,20 +91,20 @@ function* updatePlaylistsSaga(action: ReturnType<typeof updatePlaylist>) {
 
   try {
     const body = {
-      name: action.payload.name,
-      description: action.payload.description
+      name,
+      description
     };
 
     const request = () =>
-      axios.put("https://api.spotify.com/v1/playlists/" + action.payload.playlistId, body, {
+      axios.put("https://api.spotify.com/v1/playlists/" + playlistId, body, {
         headers: { Authorization: `Bearer ${accessToken}` }
       });
-    const { data, status } = yield call(request);
+    const { status } = yield call(request);
 
     if (status === 200) {
       yield put(updatePlaylistSuccess(action.payload));
       const playlist: Playlist = yield select((state: RootState) =>
-        state.playlists.items.find((item) => item.id === action.payload.playlistId)
+        state.playlists.items.find((item) => item.id === playlistId)
       );
       yield put(setSelectedPlaylist(playlist));
     }
