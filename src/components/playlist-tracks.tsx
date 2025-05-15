@@ -60,11 +60,6 @@ const PlaylistTracks: FC = () => {
   const sensors = useSensors(useSensor(PointerSensor));
 
   useEffect(() => {
-    if (!selectedPlaylist) return;
-    dispatch(getPlaylistTracks(selectedPlaylist.id));
-  }, [selectedPlaylist]);
-
-  useEffect(() => {
     if (!sortKey || !sortOrder) {
       setSortedTracks(playlistTracks);
       return;

@@ -16,6 +16,7 @@ import {
 import { User } from "../auth/slice";
 import { RootState } from "../../store/store";
 import { Playlist } from "../../types/playlist";
+import { getPlaylistTracks } from "../playlistTracks/slice";
 
 function* getPlaylistsSaga() {
   const accessToken: string = yield select(selectAccessToken);
@@ -67,6 +68,7 @@ function* createPlaylistsSaga(action: ReturnType<typeof createPlaylist>) {
 
     yield put(createPlaylistSuccess(data));
     yield put(setSelectedPlaylist(data));
+    yield put(getPlaylistTracks(data.id));
   } catch (error: any) {
     yield put(createPlaylistFailed({ message: error.message }));
   }
