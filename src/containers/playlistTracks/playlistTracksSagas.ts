@@ -19,6 +19,7 @@ import {
 import { User } from "../auth/slice";
 import { PlaylistTrack } from "../../types/playlist";
 import { selectPlaylistTracksLastFetched } from "./selectors";
+import { PLAYLIST_URL } from "../playlists/playlistsSagas";
 
 const STALE_TIME = 1000 * 60 * 1; // 1 minute
 
@@ -43,7 +44,7 @@ function* getPlaylistTracksSaga(action: ReturnType<typeof getPlaylistTracks>) {
 
   try {
     const request = () =>
-      axios.get(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
+      axios.get(`${PLAYLIST_URL}/${playlistId}/tracks`, {
         headers: { Authorization: `Bearer ${accessToken}` }
       });
 
@@ -71,7 +72,7 @@ function* addTracksToPlaylistSaga(action: ReturnType<typeof addTracksToPlaylist>
   try {
     const request = () =>
       axios.post(
-        `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
+        `${PLAYLIST_URL}/${playlistId}/tracks`,
         {
           uris: [track.uri]
         },
@@ -121,7 +122,7 @@ function* removeTrackFromPlaylistSaga(action: ReturnType<typeof removeTrackFromP
 
   try {
     const request = () =>
-      axios.delete(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
+      axios.delete(`${PLAYLIST_URL}/${playlistId}/tracks`, {
         data: {
           tracks: [{ uri: track.uri }]
         },
@@ -149,7 +150,7 @@ function* reorderTracksSaga(action: ReturnType<typeof reorderTracks>) {
   try {
     const request = () =>
       axios.put(
-        `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
+        `${PLAYLIST_URL}/${playlistId}/tracks`,
         {
           range_start: rangeStart,
           insert_before: insertBefore,

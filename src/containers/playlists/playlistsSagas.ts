@@ -21,6 +21,8 @@ import { RootState } from "../../store/store";
 import { Playlist } from "../../types/playlist";
 import { getPlaylistTracks } from "../playlistTracks/slice";
 
+export const PLAYLIST_URL = "https://api.spotify.com/v1/playlists";
+
 function* getPlaylistsSaga() {
   const accessToken: string = yield select(selectAccessToken);
   if (!accessToken) {
@@ -99,7 +101,7 @@ function* updatePlaylistsSaga(action: ReturnType<typeof updatePlaylist>) {
     };
 
     const request = () =>
-      axios.put("https://api.spotify.com/v1/playlists/" + playlistId, body, {
+      axios.put(`${PLAYLIST_URL}/${playlistId}`, body, {
         headers: { Authorization: `Bearer ${accessToken}` }
       });
     const { status } = yield call(request);
@@ -126,7 +128,7 @@ function* deletePlaylistsSaga(action: ReturnType<typeof deletePlaylist>) {
 
   try {
     const request = () =>
-      axios.delete(`https://api.spotify.com/v1/playlists/${playlistId}/followers`, {
+      axios.delete(`${PLAYLIST_URL}/${playlistId}/followers`, {
         headers: { Authorization: `Bearer ${accessToken}` }
       });
     const { status } = yield call(request);
