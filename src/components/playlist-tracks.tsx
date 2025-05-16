@@ -5,7 +5,7 @@ import {
 } from "../containers/playlistTracks/selectors";
 import Track from "./track";
 import { Flex, Text } from "@radix-ui/themes";
-import { FC, useState, useEffect, useMemo } from "react";
+import { FC, useState, useEffect } from "react";
 import { RequestStatus } from "../types/requests";
 import PlaylistTracksSkeleton from "./skeletons/playlist-tracks-skeleton";
 import { selectSelectedPlaylist } from "../containers/playlists/selectors";
@@ -20,7 +20,8 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { selectUser } from "../containers/auth/selectors";
 import { reorderTracks } from "../containers/playlistTracks/slice";
-import PlaylistTracksFilter, { SortKey, SortOrder } from "./playlist-tracks-filter";
+import PlaylistTracksFilter from "./playlist-tracks-filter";
+import { SortKey, SortOrder, sortTracks } from "../utils/sort-tracks.utils";
 
 interface SortableTrackProps {
   id: string;
@@ -50,19 +51,9 @@ const SortableTrack: FC<SortableTrackProps> = ({ id, track, isEditable }) => {
 const PlaylistTracks: FC = () => {
   const dispatch = useDispatch();
   const selectedPlaylist = useSelector(selectSelectedPlaylist);
+  const playlistTracks = useSelector(selectPlaylistTracks(selectedPlaylist?.id));
 
-  const playlistTracksSelector = useMemo(
-    () => selectPlaylistTracks(selectedPlaylist?.id),
-    [selectedPlaylist?.id]
-  );
-  const playlistTracks = useSelector(playlistTracksSelector);
-
-  const playlistTracksStatusSelector = useMemo(
-    () => selectPlaylistTracksStatus(selectedPlaylist?.id),
-    [selectedPlaylist?.id]
-  );
-
-  const playlistTracksStatus = useSelector(playlistTracksStatusSelector);
+  const playlistTracksStatus = useSelector(selectPlaylistTracksStatus(selectedPlaylist?.id));
 
   const user = useSelector(selectUser);
 
@@ -72,43 +63,18 @@ const PlaylistTracks: FC = () => {
   const sensors = useSensors(useSensor(PointerSensor));
 
   useEffect(() => {
-    if (!sortKey || !sortOrder) {
+    if (selectedPlaylist) {
       setSortedTracks(playlistTracks);
-      return;
     }
+  }, [playlistTracks, selectedPlaylist]);
 
-    const sorted = [...playlistTracks].sort((a, b) => {
-      let aVal: any, bVal: any;
+  useEffect(() => {
+    setSortedTracks(sortTracks(sortKey, sortOrder, playlistTracks));
+  }, [sortKey, sortOrder]);
 
-      switch (sortKey) {
-        case "title":
-          aVal = a.track.name.toLowerCase();
-          bVal = b.track.name.toLowerCase();
-          break;
-        case "album":
-          aVal = a.track.album.name.toLowerCase();
-          bVal = b.track.album.name.toLowerCase();
-          break;
-        case "releaseDate":
-          aVal = new Date(a.track.album.release_date).getTime();
-          bVal = new Date(b.track.album.release_date).getTime();
-          break;
-        case "duration":
-          aVal = a.track.duration_ms;
-          bVal = b.track.duration_ms;
-          break;
-        default:
-          return 0;
-      }
-
-      if (aVal < bVal) return sortOrder === "asc" ? -1 : 1;
-      if (aVal > bVal) return sortOrder === "asc" ? 1 : -1;
-      return 0;
-    });
-
-    setSortedTracks(sorted);
-  }, [sortKey, sortOrder, playlistTracks]);
-
+  if (playlistTracksStatus === RequestStatus.PENDING && sortedTracks.length === 0) {
+    return <PlaylistTracksSkeleton />;
+  }
   const handleSortChange = (key: SortKey) => {
     if (sortKey !== key) {
       setSortKey(key);
@@ -148,10 +114,6 @@ const PlaylistTracks: FC = () => {
       })
     );
   };
-
-  if (playlistTracksStatus === RequestStatus.PENDING && sortedTracks.length === 0) {
-    return <PlaylistTracksSkeleton />;
-  }
 
   if (!selectedPlaylist) {
     return (

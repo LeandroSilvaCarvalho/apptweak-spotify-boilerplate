@@ -1,9 +1,7 @@
 import { FC } from "react";
 import { Flex, Text } from "@radix-ui/themes";
 import { TriangleDownIcon, TriangleUpIcon } from "@radix-ui/react-icons";
-
-export type SortKey = string | undefined;
-export type SortOrder = "asc" | "desc" | undefined;
+import { SortKey, SortOrder } from "../utils/sort-tracks.utils";
 
 interface Column {
   key: SortKey;
