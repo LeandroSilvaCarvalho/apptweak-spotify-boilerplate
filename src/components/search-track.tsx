@@ -13,10 +13,12 @@ interface SearchTrackProps {
 const SearchTrack: FC<SearchTrackProps> = ({ track }: SearchTrackProps) => {
   const dispatch = useDispatch();
   const selectedPlaylist = useSelector(selectSelectedPlaylist);
+
   const onAddToPlaylist = () => {
     if (!selectedPlaylist) return;
     dispatch(addTracksToPlaylist({ playlistId: selectedPlaylist.id, track }));
   };
+
   return (
     <Card>
       <Flex direction="row" align="center" gap="6">

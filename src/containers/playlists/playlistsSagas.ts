@@ -5,6 +5,9 @@ import {
   createPlaylist,
   createPlaylistFailed,
   createPlaylistSuccess,
+  deletePlaylist,
+  deletePlaylistFailed,
+  deletePlaylistSuccess,
   getPlaylists,
   getPlaylistsFailed,
   getPlaylistsSuccess,
@@ -113,8 +116,32 @@ function* updatePlaylistsSaga(action: ReturnType<typeof updatePlaylist>) {
   }
 }
 
+function* deletePlaylistsSaga(action: ReturnType<typeof deletePlaylist>) {
+  const { playlistId } = action.payload;
+  const accessToken: string = yield select(selectAccessToken);
+  if (!accessToken) {
+    yield put(deletePlaylistFailed({ message: "No access token" }));
+    return;
+  }
+
+  try {
+    const request = () =>
+      axios.delete(`https://api.spotify.com/v1/playlists/${playlistId}/followers`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+    const { status } = yield call(request);
+
+    if (status === 200) {
+      yield put(deletePlaylistSuccess(action.payload));
+    }
+  } catch (error: any) {
+    yield put(deletePlaylistFailed({ message: error.message }));
+  }
+}
+
 export default function* playlistsSaga() {
   yield takeEvery(getPlaylists.type, getPlaylistsSaga);
   yield takeEvery(createPlaylist.type, createPlaylistsSaga);
   yield takeEvery(updatePlaylist.type, updatePlaylistsSaga);
+  yield takeEvery(deletePlaylist.type, deletePlaylistsSaga);
 }

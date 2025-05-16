@@ -24,9 +24,15 @@ const TrackSkeleton: FC = () => {
           </Skeleton>
         </Flex>
 
-        <Flex align="center" justify="start" style={{ flex: 3, whiteSpace: "nowrap" }}>
+        <Flex align="center" justify="start" style={{ flex: 2, whiteSpace: "nowrap" }}>
           <Skeleton>
             <Flex style={{ height: "16px", width: "100px" }} />
+          </Skeleton>
+        </Flex>
+
+        <Flex align="center" justify="start" style={{ flex: 1, whiteSpace: "nowrap" }}>
+          <Skeleton>
+            <Flex style={{ height: "16px", width: "50px" }} />
           </Skeleton>
         </Flex>
       </Flex>

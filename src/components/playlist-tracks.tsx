@@ -5,7 +5,7 @@ import {
 } from "../containers/playlistTracks/selectors";
 import Track from "./track";
 import { Flex, Text } from "@radix-ui/themes";
-import { FC, useState, useEffect } from "react";
+import { FC, useState, useEffect, useMemo } from "react";
 import { RequestStatus } from "../types/requests";
 import PlaylistTracksSkeleton from "./skeletons/playlist-tracks-skeleton";
 import { selectSelectedPlaylist } from "../containers/playlists/selectors";
@@ -50,8 +50,20 @@ const SortableTrack: FC<SortableTrackProps> = ({ id, track, isEditable }) => {
 const PlaylistTracks: FC = () => {
   const dispatch = useDispatch();
   const selectedPlaylist = useSelector(selectSelectedPlaylist);
-  const playlistTracks = useSelector(selectPlaylistTracks(selectedPlaylist?.id));
-  const playlistTracksStatus = useSelector(selectPlaylistTracksStatus(selectedPlaylist?.id));
+
+  const playlistTracksSelector = useMemo(
+    () => selectPlaylistTracks(selectedPlaylist?.id),
+    [selectedPlaylist?.id]
+  );
+  const playlistTracks = useSelector(playlistTracksSelector);
+
+  const playlistTracksStatusSelector = useMemo(
+    () => selectPlaylistTracksStatus(selectedPlaylist?.id),
+    [selectedPlaylist?.id]
+  );
+
+  const playlistTracksStatus = useSelector(playlistTracksStatusSelector);
+
   const user = useSelector(selectUser);
 
   const [sortedTracks, setSortedTracks] = useState(playlistTracks);
@@ -169,7 +181,7 @@ const PlaylistTracks: FC = () => {
   const columns = [
     { key: "title", label: "Title", flex: 3 },
     { key: "album", label: "Album", flex: 3 },
-    { key: "releaseDate", label: "Release date", flex: 3 },
+    { key: "releaseDate", label: "Release date", flex: 2 },
     { key: "duration", label: "Duration", flex: 1 }
   ];
 

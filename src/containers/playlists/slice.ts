@@ -39,6 +39,12 @@ export const updatePlaylistSuccess = createAction<{
 }>("playlists/updatePlaylistSuccess");
 export const updatePlaylistFailed = createAction<ErrorPayload>("playlists/updatePlaylistFailed");
 
+export const deletePlaylist = createAction<{ playlistId: string }>("playlists/deletePlaylist");
+export const deletePlaylistSuccess = createAction<{ playlistId: string }>(
+  "playlists/deletePlaylistSuccess"
+);
+export const deletePlaylistFailed = createAction<ErrorPayload>("playlists/deletePlaylistFailed");
+
 const playlistsSlice = createSlice({
   name: "playlists",
   initialState,
@@ -80,6 +86,17 @@ const playlistsSlice = createSlice({
         state.items[index].description = action.payload.description;
       })
       .addCase(updatePlaylistFailed, (state, action) => {
+        state.status = RequestStatus.ERROR;
+        state.error = action.payload.message;
+      })
+      .addCase(deletePlaylist, (state) => {
+        state.status = RequestStatus.PENDING;
+      })
+      .addCase(deletePlaylistSuccess, (state, action) => {
+        state.status = RequestStatus.SUCCESS;
+        state.items = state.items.filter((item) => item.id !== action.payload.playlistId);
+      })
+      .addCase(deletePlaylistFailed, (state, action) => {
         state.status = RequestStatus.ERROR;
         state.error = action.payload.message;
       });
