@@ -38,6 +38,7 @@ const initialState: PlaylistTracksState = {
 };
 
 export const getPlaylistTracks = createAction<string>("playlistTracks/getPlaylistTracks");
+export const getPlaylistTracksStale = createAction<string>("playlistTracks/getPlaylistTracksStale");
 export const getPlaylistTracksSuccess = createAction<{
   playlistId: string;
   tracks: PlaylistTrack[];
@@ -103,6 +104,15 @@ const playlistTracksSlice = createSlice({
             items: []
           }),
           status: RequestStatus.PENDING
+        };
+      })
+      .addCase(getPlaylistTracksStale, (state, action) => {
+        const playlistId = action.payload;
+        state.byPlaylistId[playlistId] = {
+          ...(state.byPlaylistId[playlistId] || {
+            items: []
+          }),
+          status: RequestStatus.SUCCESS
         };
       })
       .addCase(getPlaylistTracksSuccess, (state, action) => {
