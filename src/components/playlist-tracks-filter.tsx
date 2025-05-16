@@ -57,16 +57,6 @@ const PlaylistTracksFilter: FC<TrackHeaderProps> = ({
   sortOrder,
   onSortChange
 }) => {
-  const handleClick = (key: SortKey) => () => {
-    if (sortKey !== key) {
-      onSortChange(key);
-    } else {
-      if (sortOrder === "asc") onSortChange(key);
-      else if (sortOrder === "desc") onSortChange(undefined);
-      else onSortChange(key);
-    }
-  };
-
   return (
     <Flex direction="row" gap="6" px="3">
       <Flex width="64px" align="center" justify="center">
@@ -78,7 +68,7 @@ const PlaylistTracksFilter: FC<TrackHeaderProps> = ({
           key={col.key}
           column={col}
           order={sortKey === col.key ? sortOrder : undefined}
-          onClick={handleClick(col.key)}
+          onClick={() => onSortChange(col.key)}
         />
       ))}
     </Flex>
