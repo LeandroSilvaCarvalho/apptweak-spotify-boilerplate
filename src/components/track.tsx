@@ -46,7 +46,7 @@ const Track: FC<TrackProps> = ({ track, isEditable = false, dragHandleProps }: T
           <Text truncate>{track.album.name}</Text>
         </Flex>
 
-        <Flex align="center" justify="start" style={{ flex: 3 }}>
+        <Flex align="center" justify="start" style={{ flex: 2 }}>
           <Text size="2">{track.album.release_date}</Text>
         </Flex>
         <Flex align="center" justify="start" style={{ flex: 1 }}>

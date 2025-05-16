@@ -18,7 +18,7 @@ const SelectPlaylist: FC = () => {
 
   useEffect(() => {
     dispatch(getPlaylists());
-  }, [dispatch]);
+  }, []);
 
   return (
     <Flex direction="column" width="250px">

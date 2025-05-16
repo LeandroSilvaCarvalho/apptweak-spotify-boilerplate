@@ -9,6 +9,8 @@ const PlaylistTracksSkeleton: FC = () => {
         <TrackSkeleton />
         <TrackSkeleton />
         <TrackSkeleton />
+        <TrackSkeleton />
+        <TrackSkeleton />
       </Flex>
     </div>
   );
