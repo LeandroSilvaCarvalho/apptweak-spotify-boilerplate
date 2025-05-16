@@ -13,7 +13,8 @@ import {
   removeTrackFromPlaylistSuccess,
   reorderTracksFailed,
   reorderTracksSuccess,
-  reorderTracks
+  reorderTracks,
+  getPlaylistTracksStale
 } from "./slice";
 import { User } from "../auth/slice";
 import { PlaylistTrack } from "../../types/playlist";
@@ -36,6 +37,7 @@ function* getPlaylistTracksSaga(action: ReturnType<typeof getPlaylistTracks>) {
 
   const lastFetched: number = yield select(selectPlaylistTracksLastFetched(playlistId));
   if (!isDataStale(lastFetched)) {
+    yield put(getPlaylistTracksStale(playlistId));
     return;
   }
 

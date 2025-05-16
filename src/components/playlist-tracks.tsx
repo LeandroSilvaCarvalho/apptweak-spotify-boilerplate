@@ -10,7 +10,14 @@ import { RequestStatus } from "../types/requests";
 import PlaylistTracksSkeleton from "./skeletons/playlist-tracks-skeleton";
 import { selectSelectedPlaylist } from "../containers/playlists/selectors";
 import { CardStackPlusIcon, DownloadIcon } from "@radix-ui/react-icons";
-import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent
+} from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
@@ -62,6 +69,8 @@ const PlaylistTracks: FC = () => {
   const [sortOrder, setSortOrder] = useState<SortOrder>(undefined);
   const sensors = useSensors(useSensor(PointerSensor));
 
+  const emptyPlaylist = playlistTracks.length === 0 && sortedTracks.length === 0;
+
   useEffect(() => {
     if (selectedPlaylist) {
       setSortedTracks(playlistTracks);
@@ -72,9 +81,6 @@ const PlaylistTracks: FC = () => {
     setSortedTracks(sortTracks(sortKey, sortOrder, playlistTracks));
   }, [sortKey, sortOrder]);
 
-  if (playlistTracksStatus === RequestStatus.PENDING && sortedTracks.length === 0) {
-    return <PlaylistTracksSkeleton />;
-  }
   const handleSortChange = (key: SortKey) => {
     if (sortKey !== key) {
       setSortKey(key);
@@ -91,7 +97,7 @@ const PlaylistTracks: FC = () => {
     }
   };
 
-  const handleDragEnd = (event: any) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     if (!selectedPlaylist) return;
     const { active, over } = event;
     if (!over || active.id === over.id) return;
@@ -115,6 +121,10 @@ const PlaylistTracks: FC = () => {
     );
   };
 
+  if (playlistTracksStatus === RequestStatus.PENDING && emptyPlaylist) {
+    return <PlaylistTracksSkeleton />;
+  }
+
   if (!selectedPlaylist) {
     return (
       <Flex direction="column" align="center" gap="5">
@@ -124,7 +134,7 @@ const PlaylistTracks: FC = () => {
     );
   }
 
-  if (sortedTracks.length === 0) {
+  if (emptyPlaylist) {
     return (
       <Flex direction="column" align="center" gap="8">
         <DownloadIcon height="50" width="50" color="gray" />
