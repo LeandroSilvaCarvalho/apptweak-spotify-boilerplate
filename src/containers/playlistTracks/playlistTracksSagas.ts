@@ -20,7 +20,7 @@ import { User } from "../auth/slice";
 import { PlaylistTrack } from "../../types/playlist";
 import { selectPlaylistTracksLastFetched } from "./selectors";
 
-const STALE_TIME = 1000 * 60 * 1;
+const STALE_TIME = 1000 * 60 * 1; // 1 minute
 
 function isDataStale(lastFetched: number): boolean {
   const now = new Date().getTime();
