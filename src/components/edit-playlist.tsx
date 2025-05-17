@@ -4,7 +4,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { selectSelectedPlaylist } from "../containers/playlists/selectors";
 import { updatePlaylist } from "../containers/playlists/slice";
 
-const EditPlaylist: FC = () => {
+interface EditPlaylistProps extends Dialog.RootProps { }
+
+const EditPlaylist: FC<EditPlaylistProps> = (props) => {
   const dispatch = useDispatch();
   const playlist = useSelector(selectSelectedPlaylist);
   const [newPlaylist, setNewPlaylist] = useState(playlist);
@@ -34,12 +36,7 @@ const EditPlaylist: FC = () => {
   };
 
   return (
-    <Dialog.Root>
-      <Dialog.Trigger>
-        <Text size="3" style={{ cursor: "pointer" }}>
-          Edit the playlist
-        </Text>
-      </Dialog.Trigger>
+    <Dialog.Root {...props}>
       <Dialog.Content maxWidth="600px">
         <Dialog.Title>Edit your playlist</Dialog.Title>
         <Dialog.Description size="2" mb="4">
