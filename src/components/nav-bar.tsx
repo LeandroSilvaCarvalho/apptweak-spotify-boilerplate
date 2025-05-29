@@ -1,13 +1,16 @@
-import { Box, Flex } from "@radix-ui/themes";
+import { Avatar, Box, Flex } from "@radix-ui/themes";
 import { FC } from "react";
 import ThemeToggle from "./theme-toggle";
 import logo from "../logo.svg";
 import logoDark from "../logo-dark.svg";
 import { useSelector } from "react-redux";
 import { selectTheme } from "../containers/theme/selectors";
+import { selectUser } from "../containers/auth/selectors";
+import NavBarPopover from "./nav-bar-popover";
 
 const NavBar: FC = () => {
   const appearance = useSelector(selectTheme);
+
   return (
     <nav style={{ height: "70px" }}>
       <Flex align="center" justify="between" height="100%">
@@ -23,7 +26,7 @@ const NavBar: FC = () => {
         </Flex>
 
         <Flex align="center" gap="2">
-          <ThemeToggle />
+          <NavBarPopover />
         </Flex>
       </Flex>
     </nav>

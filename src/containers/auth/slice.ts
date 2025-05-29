@@ -1,14 +1,11 @@
 import { createAction, createSlice } from "@reduxjs/toolkit";
 
 import { ErrorPayload, RequestStatus, RequestStatusType } from "../../types/requests";
+import { UserProfile } from "@spotify/web-api-ts-sdk";
 
-export interface User {
+export interface User extends UserProfile {
   userId: string;
   userName: string;
-  href: string;
-  type: string;
-  uri: string;
-  externalUrls: { spotify: string };
 }
 
 export interface AuthState {
