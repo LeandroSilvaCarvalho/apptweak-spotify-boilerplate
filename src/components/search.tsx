@@ -1,24 +1,30 @@
 import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import { Box, Flex, Popover, TextField } from "@radix-ui/themes";
 import { FC, useState } from "react";
-import { selectSearchTracks } from "../containers/search/selectors";
+import { selectSearchTracks, selectSearchTracksStatus } from "../containers/search/selectors";
 import { useDispatch, useSelector } from "react-redux";
 import { searchTracks } from "../containers/search/slice";
 import SearchTrackList from "./search-track-list";
+import { useDebouncedCallback } from "../hooks/useDebounceCallback";
 
 const Search: FC = () => {
   const [searchValue, setSearchValue] = useState("");
   const [open, setOpen] = useState(false);
   const dispatch = useDispatch();
   const searchItems = useSelector(selectSearchTracks);
+  const searchStatus = useSelector(selectSearchTracksStatus);
   const showPopover = searchValue.length > 0;
+
+  const debouncedSearch = useDebouncedCallback((value: string) => {
+    dispatch(searchTracks(value));
+  }, 500);
 
   const changeSearchValue = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setOpen(value.length > 0);
     setSearchValue(value);
     if (value.length > 0) {
-      dispatch(searchTracks(value));
+      debouncedSearch(value);
     }
   };
   const onOpenChange = (open: boolean) => {
@@ -45,11 +51,13 @@ const Search: FC = () => {
         </Box>
       </Popover.Trigger>
 
-      <Popover.Content sideOffset={8} onOpenAutoFocus={(e) => e.preventDefault()}>
-        <Flex direction="column" gap="5">
-          <SearchTrackList tracks={searchItems.items} />
-        </Flex>
-      </Popover.Content>
+      {searchStatus !== "idle" && (
+        <Popover.Content sideOffset={8} onOpenAutoFocus={(e) => e.preventDefault()}>
+          <Flex direction="column" gap="5">
+            <SearchTrackList tracks={searchItems.items} searchStatus={searchStatus} />
+          </Flex>
+        </Popover.Content>
+      )}
     </Popover.Root>
   );
 };
