@@ -1,4 +1,4 @@
-import { Avatar, Popover } from "@radix-ui/themes";
+import { Avatar, Flex, Popover, Text } from "@radix-ui/themes";
 import { FC } from "react";
 import { selectUser } from "../containers/auth/selectors";
 import { useSelector } from "react-redux";
@@ -22,8 +22,11 @@ const NavBarPopover: FC = () => {
         />
       </Popover.Trigger>
 
-      <Popover.Content sideOffset={8} onOpenAutoFocus={(e) => e.preventDefault()}>
-        <ThemeToggle />
+      <Popover.Content sideOffset={8}>
+        <Flex gap="4" justify="center" align="center">
+          <Text>Toggle the theme:</Text>
+          <ThemeToggle />
+        </Flex>
       </Popover.Content>
     </Popover.Root>
   );
